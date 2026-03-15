@@ -2,7 +2,7 @@
   "name": "Balloon Pop!",
   "short_name": "BalloonPop",
   "description": "A fun balloon popping game for kids!",
-  "start_url": "./index.html",
+  "start_url": "./balloon-pop.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#87CEEB",
