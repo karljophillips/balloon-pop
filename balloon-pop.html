@@ -368,10 +368,10 @@ function spawnBalloon() {
   if (!gameActive) return;
 
   const color = BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)];
-  const size  = 45 + Math.random() * 30; // 45–75px
-  const speedMod = 1 - (GAME_DURATION - timeLeft) / GAME_DURATION * 0.35; // speeds up over time
-  const duration = (4.5 + Math.random() * 3) * speedMod;
-  const leftPct  = 5 + Math.random() * 82;
+  const size  = 100 + Math.random() * 60; // 100–160px — big targets for small fingers
+  const speedMod = 1 - (GAME_DURATION - timeLeft) / GAME_DURATION * 0.25; // speeds up gently over time
+  const duration = (7 + Math.random() * 4) * speedMod; // slower rise for easier tapping
+  const leftPct  = 5 + Math.random() * 72; // keep large balloons fully on screen
 
   const el = document.createElement('div');
   el.className = 'balloon';
@@ -422,7 +422,7 @@ function burstBalloon(el, color, size) {
   }
 
   // Score pop
-  const pts = Math.round(10 + (size < 55 ? 10 : 0)); // smaller = more points
+  const pts = 10; // flat points — all balloons are toddler-sized
   score += pts;
   scoreEl.textContent = score;
 
