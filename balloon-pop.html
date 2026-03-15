@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🎈 Balloon Pop!</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FF6B6B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Balloon Pop!">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sky1: #87CEEB;
+    --sky2: #B0E2FF;
+    --cloud: #ffffffcc;
+  }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: linear-gradient(180deg, #87CEEB 0%, #c9eeff 60%, #d4f5c4 100%);
+    min-height: 100vh;
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+  }
+
+  /* Clouds */
+  .cloud {
+    position: absolute;
+    background: white;
+    border-radius: 50px;
+    opacity: 0.8;
+    pointer-events: none;
+  }
+  .cloud::before, .cloud::after {
+    content: '';
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+  }
+  .cloud-1 { width: 120px; height: 40px; top: 8%; left: -140px; animation: driftCloud 22s linear infinite; }
+  .cloud-1::before { width: 60px; height: 60px; top: -30px; left: 15px; }
+  .cloud-1::after  { width: 40px; height: 40px; top: -20px; left: 55px; }
+  .cloud-2 { width: 90px;  height: 30px; top: 20%; left: -110px; animation: driftCloud 30s linear infinite 8s; }
+  .cloud-2::before { width: 45px; height: 45px; top: -22px; left: 10px; }
+  .cloud-2::after  { width: 30px; height: 30px; top: -15px; left: 45px; }
+  .cloud-3 { width: 150px; height: 45px; top: 5%;  left: -170px; animation: driftCloud 26s linear infinite 15s; }
+  .cloud-3::before { width: 70px; height: 70px; top: -35px; left: 20px; }
+  .cloud-3::after  { width: 50px; height: 50px; top: -25px; left: 75px; }
+
+  @keyframes driftCloud {
+    from { transform: translateX(0); }
+    to   { transform: translateX(calc(100vw + 200px)); }
+  }
+
+  /* Ground */
+  .ground {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    background: linear-gradient(180deg, #7ec850 0%, #5aab2e 100%);
+    border-radius: 50% 50% 0 0 / 20px 20px 0 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .ground::before {
+    content: '';
+    position: absolute;
+    top: -10px; left: 0; right: 0; height: 20px;
+    background: radial-gradient(ellipse 30px 10px at 50% 50%, #7ec850, transparent) repeat-x;
+    background-size: 40px 20px;
+  }
+
+  /* HUD */
+  #hud {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px 8px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 100%);
+    z-index: 10;
+    pointer-events: none;
+  }
+  .hud-box {
+    background: white;
+    border-radius: 20px;
+    padding: 6px 18px;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.12);
+    text-align: center;
+    pointer-events: none;
+  }
+  .hud-label {
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: #aaa;
+    text-transform: uppercase;
+  }
+  .hud-value {
+    font-family: 'Fredoka One', cursive;
+    font-size: 28px;
+    line-height: 1;
+  }
+  #score-val  { color: #ff5c8a; }
+  #timer-val  { color: #5b9df5; }
+
+  #timer-val.urgent { color: #ff3b30; animation: pulse 0.5s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
+
+  /* Game area */
+  #game-area {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+  }
+
+  /* Balloons */
+  .balloon {
+    position: absolute;
+    cursor: pointer;
+    transform-origin: bottom center;
+    animation: floatUp linear forwards, sway 2s ease-in-out infinite;
+    will-change: transform;
+    z-index: 3;
+  }
+  @keyframes floatUp {
+    from { bottom: -120px; opacity: 1; }
+    to   { bottom: 110%; opacity: 0.6; }
+  }
+  @keyframes sway {
+    0%,100% { transform: rotate(-4deg); }
+    50%      { transform: rotate(4deg); }
+  }
+
+  .balloon svg { display: block; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.18)); }
+
+  /* Burst particles */
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 20;
+    animation: burst 0.55s ease-out forwards;
+  }
+  @keyframes burst {
+    0%   { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+  }
+
+  /* Score pop */
+  .score-pop {
+    position: absolute;
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    color: white;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    pointer-events: none;
+    z-index: 25;
+    animation: scorePop 0.8s ease-out forwards;
+  }
+  @keyframes scorePop {
+    0%   { transform: translateY(0) scale(0.5); opacity: 1; }
+    60%  { transform: translateY(-50px) scale(1.1); opacity: 1; }
+    100% { transform: translateY(-80px) scale(0.9); opacity: 0; }
+  }
+
+  /* Screens */
+  .screen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    background: linear-gradient(160deg, #ffecd2 0%, #fcb69f 100%);
+    text-align: center;
+    padding: 30px;
+  }
+  .screen h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(3rem, 12vw, 5rem);
+    color: white;
+    text-shadow: 0 4px 0 rgba(0,0,0,0.12);
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+  .screen p {
+    font-size: clamp(1rem, 4vw, 1.3rem);
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 30px;
+    font-weight: 700;
+  }
+  .btn {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(1.4rem, 5vw, 2rem);
+    color: white;
+    background: linear-gradient(135deg, #ff7eb3, #ff4f81);
+    border: none;
+    border-radius: 50px;
+    padding: 16px 48px;
+    cursor: pointer;
+    box-shadow: 0 6px 0 #c93060, 0 8px 20px rgba(255,79,129,0.4);
+    transform: translateY(0);
+    transition: transform 0.1s, box-shadow 0.1s;
+    touch-action: manipulation;
+  }
+  .btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #c93060, 0 4px 10px rgba(255,79,129,0.3);
+  }
+
+  #end-screen { background: linear-gradient(160deg, #a8edea 0%, #fed6e3 100%); }
+  #end-screen h1 { color: white; }
+  .end-score {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(4rem, 18vw, 7rem);
+    color: #ff5c8a;
+    line-height: 1;
+    text-shadow: 0 4px 0 rgba(255,92,138,0.25);
+    margin: 10px 0;
+  }
+  .end-label {
+    font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+    color: #555;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  /* Floating balloons on start screen */
+  .deco-balloon {
+    position: absolute;
+    pointer-events: none;
+    animation: decoFloat 4s ease-in-out infinite;
+    opacity: 0.9;
+  }
+  @keyframes decoFloat {
+    0%,100%{ transform: translateY(0) rotate(-5deg); }
+    50%    { transform: translateY(-18px) rotate(5deg); }
+  }
+
+  #start-screen { background: linear-gradient(160deg, #ffecd2 0%, #fcb69f 100%); }
+</style>
+</head>
+<body>
+
+<!-- Clouds -->
+<div class="cloud cloud-1"></div>
+<div class="cloud cloud-2"></div>
+<div class="cloud cloud-3"></div>
+<div class="ground"></div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hud-box">
+    <div class="hud-label">Score</div>
+    <div class="hud-value" id="score-val">0</div>
+  </div>
+  <div class="hud-box">
+    <div class="hud-label">Time</div>
+    <div class="hud-value" id="timer-val">30</div>
+  </div>
+</div>
+
+<!-- Game area -->
+<div id="game-area"></div>
+
+<!-- Start screen -->
+<div class="screen" id="start-screen">
+  <svg class="deco-balloon" style="width:80px;top:12%;left:10%;animation-delay:0s" viewBox="0 0 60 90"><ellipse cx="30" cy="30" rx="25" ry="30" fill="#FF6B6B"/><path d="M30 60 Q28 70 30 80" stroke="#ccc" stroke-width="1.5" fill="none"/><ellipse cx="24" cy="18" rx="7" ry="5" fill="rgba(255,255,255,0.35)"/></svg>
+  <svg class="deco-balloon" style="width:70px;top:8%;right:12%;animation-delay:1s" viewBox="0 0 60 90"><ellipse cx="30" cy="30" rx="25" ry="30" fill="#FFD93D"/><path d="M30 60 Q28 70 30 80" stroke="#ccc" stroke-width="1.5" fill="none"/><ellipse cx="24" cy="18" rx="7" ry="5" fill="rgba(255,255,255,0.35)"/></svg>
+  <svg class="deco-balloon" style="width:60px;bottom:22%;left:8%;animation-delay:2s" viewBox="0 0 60 90"><ellipse cx="30" cy="30" rx="25" ry="30" fill="#6BCB77"/><path d="M30 60 Q28 70 30 80" stroke="#ccc" stroke-width="1.5" fill="none"/><ellipse cx="24" cy="18" rx="7" ry="5" fill="rgba(255,255,255,0.35)"/></svg>
+  <svg class="deco-balloon" style="width:75px;bottom:20%;right:6%;animation-delay:0.5s" viewBox="0 0 60 90"><ellipse cx="30" cy="30" rx="25" ry="30" fill="#845EC2"/><path d="M30 60 Q28 70 30 80" stroke="#ccc" stroke-width="1.5" fill="none"/><ellipse cx="24" cy="18" rx="7" ry="5" fill="rgba(255,255,255,0.35)"/></svg>
+  <h1>🎈 Balloon<br>Pop!</h1>
+  <p>Tap the balloons before<br>they fly away!</p>
+  <button class="btn" id="start-btn">Let's Play!</button>
+</div>
+
+<!-- End screen -->
+<div class="screen" id="end-screen" style="display:none">
+  <h1>⭐ Time's Up!</h1>
+  <div class="end-label">Your Score</div>
+  <div class="end-score" id="final-score">0</div>
+  <p id="end-message">Nice popping!</p>
+  <button class="btn" id="restart-btn">Play Again!</button>
+</div>
+
+<script>
+const GAME_DURATION = 30;
+const BALLOON_COLORS = [
+  { fill: '#FF6B6B', shine: '#FF9999', dark: '#CC4444' },
+  { fill: '#FFD93D', shine: '#FFE87A', dark: '#CCА300' },
+  { fill: '#6BCB77', shine: '#99E0A3', dark: '#449950' },
+  { fill: '#4ECDC4', shine: '#80E8E2', dark: '#2E9990' },
+  { fill: '#845EC2', shine: '#AA88DD', dark: '#5A3A90' },
+  { fill: '#FF9671', shine: '#FFBB99', dark: '#CC6040' },
+  { fill: '#F9C74F', shine: '#FBDD88', dark: '#C89A20' },
+  { fill: '#90BE6D', shine: '#B5D698', dark: '#5F8E40' },
+  { fill: '#F72585', shine: '#FA70B0', dark: '#C00060' },
+  { fill: '#4361EE', shine: '#7B91F5', dark: '#1A3DBB' },
+];
+
+const gameArea = document.getElementById('game-area');
+const scoreEl  = document.getElementById('score-val');
+const timerEl  = document.getElementById('timer-val');
+const startScreen = document.getElementById('start-screen');
+const endScreen   = document.getElementById('end-screen');
+const finalScore  = document.getElementById('final-score');
+const endMessage  = document.getElementById('end-message');
+
+let score = 0, timeLeft = 0, spawnInterval, countdownInterval, gameActive = false;
+
+// --- Audio (Web Audio API, no files needed) ---
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playPop(pitch = 1) {
+  const osc  = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  const dist = audioCtx.createWaveShaper();
+
+  // gentle distortion curve
+  const curve = new Float32Array(256);
+  for (let i = 0; i < 256; i++) { const x = (i * 2) / 256 - 1; curve[i] = (Math.PI + 300) * x / (Math.PI + 300 * Math.abs(x)); }
+  dist.curve = curve;
+
+  osc.connect(dist); dist.connect(gain); gain.connect(audioCtx.destination);
+
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(480 * pitch, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.12);
+
+  gain.gain.setValueAtTime(0.7, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+
+  osc.start(audioCtx.currentTime);
+  osc.stop(audioCtx.currentTime + 0.15);
+}
+
+function playEnd() {
+  [0, 0.15, 0.30].forEach((t, i) => {
+    setTimeout(() => playPop([1.2, 1.5, 1.8][i]), t * 1000);
+  });
+}
+
+// --- SVG Balloon ---
+function makeBalloonSVG(color, size) {
+  return `<svg width="${size}" height="${size*1.5}" viewBox="0 0 60 90" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="30" cy="30" rx="25" ry="30" fill="${color.fill}"/>
+    <ellipse cx="24" cy="18" rx="8" ry="6" fill="rgba(255,255,255,0.38)"/>
+    <ellipse cx="36" cy="38" rx="3" ry="4" fill="${color.dark}" opacity="0.25"/>
+    <polygon points="27,59 33,59 30,65" fill="${color.fill}"/>
+    <path d="M30 65 Q27 73 30 82" stroke="#bbb" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  </svg>`;
+}
+
+// --- Spawn balloon ---
+function spawnBalloon() {
+  if (!gameActive) return;
+
+  const color = BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)];
+  const size  = 45 + Math.random() * 30; // 45–75px
+  const speedMod = 1 - (GAME_DURATION - timeLeft) / GAME_DURATION * 0.35; // speeds up over time
+  const duration = (4.5 + Math.random() * 3) * speedMod;
+  const leftPct  = 5 + Math.random() * 82;
+
+  const el = document.createElement('div');
+  el.className = 'balloon';
+  el.innerHTML = makeBalloonSVG(color, size);
+  el.style.left   = leftPct + '%';
+  el.style.width  = size + 'px';
+  el.style.animationDuration = `${duration}s, ${1.5 + Math.random()}s`;
+  el.style.animationDelay    = `0s, ${Math.random() * 1}s`;
+
+  el.addEventListener('pointerdown', e => {
+    e.stopPropagation();
+    if (!gameActive) return;
+    burstBalloon(el, color, size);
+  });
+
+  gameArea.appendChild(el);
+
+  // Auto-remove when gone
+  setTimeout(() => el.remove(), (duration + 0.5) * 1000);
+}
+
+// --- Burst ---
+function burstBalloon(el, color, size) {
+  const rect = el.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top  + rect.height * 0.35;
+
+  el.remove();
+
+  // Particles
+  const count = 10 + Math.floor(size / 8);
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const pSize = 6 + Math.random() * 10;
+    const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.8;
+    const dist  = 40 + Math.random() * 70;
+    p.style.cssText = `
+      width:${pSize}px; height:${pSize}px;
+      left:${cx - pSize/2}px; top:${cy - pSize/2}px;
+      background:${[color.fill, color.shine, '#fff', color.dark][i % 4]};
+      --tx:${Math.cos(angle) * dist}px;
+      --ty:${Math.sin(angle) * dist - 20}px;
+      animation-duration:${0.4 + Math.random() * 0.2}s;
+    `;
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 700);
+  }
+
+  // Score pop
+  const pts = Math.round(10 + (size < 55 ? 10 : 0)); // smaller = more points
+  score += pts;
+  scoreEl.textContent = score;
+
+  const pop = document.createElement('div');
+  pop.className = 'score-pop';
+  pop.textContent = '+' + pts;
+  pop.style.left = (cx - 20) + 'px';
+  pop.style.top  = (cy - 10) + 'px';
+  document.body.appendChild(pop);
+  setTimeout(() => pop.remove(), 900);
+
+  // Sound
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  playPop(0.8 + Math.random() * 0.6);
+}
+
+// --- Timer ---
+function startTimer() {
+  timeLeft = GAME_DURATION;
+  timerEl.textContent = timeLeft;
+  timerEl.classList.remove('urgent');
+
+  countdownInterval = setInterval(() => {
+    timeLeft--;
+    timerEl.textContent = timeLeft;
+    if (timeLeft <= 5) timerEl.classList.add('urgent');
+    if (timeLeft <= 0) endGame();
+  }, 1000);
+}
+
+// --- Spawn rate ---
+function startSpawning() {
+  spawnBalloon();
+  let interval = 900;
+  spawnInterval = setInterval(() => {
+    spawnBalloon();
+    // Gradually speed up spawning
+    const elapsed = GAME_DURATION - timeLeft;
+    if (elapsed > 10 && interval > 600) { clearInterval(spawnInterval); interval = 650; startSpawning(); }
+    if (elapsed > 20 && interval > 600) { clearInterval(spawnInterval); interval = 450; startSpawning(); }
+  }, interval);
+}
+
+// --- Game flow ---
+function startGame() {
+  score = 0;
+  scoreEl.textContent = '0';
+  gameActive = true;
+  startScreen.style.display = 'none';
+  endScreen.style.display   = 'none';
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  startTimer();
+  startSpawning();
+}
+
+function endGame() {
+  gameActive = false;
+  clearInterval(spawnInterval);
+  clearInterval(countdownInterval);
+
+  // Remove all balloons
+  gameArea.querySelectorAll('.balloon').forEach(b => b.remove());
+
+  finalScore.textContent = score;
+  endMessage.textContent = score >= 200 ? '🏆 Amazing! You\'re a pro popper!' :
+                           score >= 120 ? '🎉 Great job! So many pops!' :
+                           score >= 60  ? '😊 Nice popping! Try again?' :
+                                          '🌟 Keep practising — you\'ve got this!';
+  endScreen.style.display = 'flex';
+  playEnd();
+}
+
+document.getElementById('start-btn').addEventListener('click', startGame);
+document.getElementById('restart-btn').addEventListener('click', startGame);
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('SW registered:', reg.scope))
+        .catch(err => console.warn('SW registration failed:', err));
+    });
+  }
+</script>
+</body>
+</html>
