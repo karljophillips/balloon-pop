@@ -250,6 +250,85 @@
   }
 
   #start-screen { background: linear-gradient(160deg, #ffecd2 0%, #fcb69f 100%); }
+
+  /* Settings button */
+  #settings-btn {
+    position: absolute;
+    bottom: 28px; right: 28px;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.5);
+    font-size: 24px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.1);
+    touch-action: manipulation;
+    pointer-events: all;
+  }
+
+  /* Settings screen */
+  #settings-screen {
+    background: linear-gradient(160deg, #e0f0ff 0%, #cce8ff 100%);
+  }
+  #settings-screen h1 { font-size: clamp(2rem, 8vw, 3.5rem); }
+  #settings-screen p  { margin-bottom: 16px; }
+
+  .photo-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    max-width: 380px;
+    max-height: 36vh;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    padding: 4px;
+  }
+  .photo-thumb {
+    position: relative;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    overflow: visible;
+    flex-shrink: 0;
+  }
+  .photo-thumb img {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid white;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    display: block;
+  }
+  .photo-delete {
+    position: absolute;
+    top: -4px; right: -4px;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    border: none;
+    background: #ff4f81;
+    color: white;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  .empty-hint {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+  #add-photo-btn {
+    background: linear-gradient(135deg, #43c6ac, #1a8f73);
+    box-shadow: 0 6px 0 #0e6652, 0 8px 20px rgba(26,143,115,0.4);
+    margin-bottom: 14px;
+  }
+  #back-btn {
+    background: linear-gradient(135deg, #a0a0b0, #7a7a8a);
+    box-shadow: 0 6px 0 #555566, 0 8px 20px rgba(100,100,120,0.3);
+  }
 </style>
 </head>
 <body>
@@ -284,6 +363,18 @@
   <h1>🎈 Balloon<br>Pop!</h1>
   <p>Tap the balloons before<br>they fly away!</p>
   <button class="btn" id="start-btn">Let's Play!</button>
+  <button id="settings-btn" title="Add photos">📷</button>
+</div>
+
+<!-- Settings screen -->
+<div class="screen" id="settings-screen" style="display:none">
+  <h1>📷 Photos</h1>
+  <p>Add faces to your balloons!</p>
+  <div class="photo-grid" id="photo-grid"></div>
+  <p class="empty-hint" id="empty-hint" style="display:none">No photos yet — add one below!</p>
+  <button class="btn" id="add-photo-btn">+ Add Photo</button>
+  <input type="file" id="file-input" accept="image/*" multiple style="display:none">
+  <button class="btn" id="back-btn" style="margin-top:10px">← Back</button>
 </div>
 
 <!-- End screen -->
@@ -297,6 +388,71 @@
 
 <script>
 const GAME_DURATION = 30;
+
+// --- Custom photos (stored in localStorage) ---
+const STORAGE_KEY = 'balloon-pop-images';
+
+function loadPhotos() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { return []; }
+}
+function savePhotos(photos) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(photos));
+}
+
+function renderPhotoGrid() {
+  const photos = loadPhotos();
+  const grid   = document.getElementById('photo-grid');
+  const hint   = document.getElementById('empty-hint');
+  grid.innerHTML = '';
+  hint.style.display = photos.length === 0 ? 'block' : 'none';
+  photos.forEach((src, i) => {
+    const thumb = document.createElement('div');
+    thumb.className = 'photo-thumb';
+    thumb.innerHTML = `<img src="${src}" alt="photo ${i+1}">
+      <button class="photo-delete" data-index="${i}" title="Remove">✕</button>`;
+    grid.appendChild(thumb);
+  });
+  grid.querySelectorAll('.photo-delete').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const photos = loadPhotos();
+      photos.splice(+btn.dataset.index, 1);
+      savePhotos(photos);
+      renderPhotoGrid();
+    });
+  });
+}
+
+// Settings screen wiring
+const settingsScreen = document.getElementById('settings-screen');
+const fileInput      = document.getElementById('file-input');
+
+document.getElementById('settings-btn').addEventListener('click', () => {
+  startScreen.style.display = 'none';
+  settingsScreen.style.display = 'flex';
+  renderPhotoGrid();
+});
+document.getElementById('back-btn').addEventListener('click', () => {
+  settingsScreen.style.display = 'none';
+  startScreen.style.display    = 'flex';
+});
+document.getElementById('add-photo-btn').addEventListener('click', () => fileInput.click());
+
+fileInput.addEventListener('change', () => {
+  const files  = Array.from(fileInput.files);
+  const photos = loadPhotos();
+  let loaded   = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      photos.push(e.target.result);
+      loaded++;
+      if (loaded === files.length) { savePhotos(photos); renderPhotoGrid(); }
+    };
+    reader.readAsDataURL(file);
+  });
+  fileInput.value = '';
+});
 const BALLOON_COLORS = [
   { fill: '#FF6B6B', shine: '#FF9999', dark: '#CC4444' },
   { fill: '#FFD93D', shine: '#FFE87A', dark: '#CCА300' },
@@ -353,7 +509,26 @@ function playEnd() {
 }
 
 // --- SVG Balloon ---
-function makeBalloonSVG(color, size) {
+let balloonIdCounter = 0;
+
+function makeBalloonSVG(color, size, imgSrc) {
+  const id = 'bc' + (balloonIdCounter++);
+  if (imgSrc) {
+    // Photo balloon: image clipped to balloon oval, with shine + knot + string
+    return `<svg width="${size}" height="${size*1.5}" viewBox="0 0 60 90" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <clipPath id="${id}">
+          <ellipse cx="30" cy="30" rx="25" ry="30"/>
+        </clipPath>
+      </defs>
+      <ellipse cx="30" cy="30" rx="25" ry="30" fill="${color.fill}" opacity="0.25"/>
+      <image href="${imgSrc}" x="5" y="0" width="50" height="60"
+             clip-path="url(#${id})" preserveAspectRatio="xMidYMid slice"/>
+      <ellipse cx="24" cy="18" rx="8" ry="6" fill="rgba(255,255,255,0.32)"/>
+      <polygon points="27,59 33,59 30,65" fill="${color.fill}"/>
+      <path d="M30 65 Q27 73 30 82" stroke="#bbb" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    </svg>`;
+  }
   return `<svg width="${size}" height="${size*1.5}" viewBox="0 0 60 90" xmlns="http://www.w3.org/2000/svg">
     <ellipse cx="30" cy="30" rx="25" ry="30" fill="${color.fill}"/>
     <ellipse cx="24" cy="18" rx="8" ry="6" fill="rgba(255,255,255,0.38)"/>
@@ -367,15 +542,21 @@ function makeBalloonSVG(color, size) {
 function spawnBalloon() {
   if (!gameActive) return;
 
-  const color = BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)];
-  const size  = 100 + Math.random() * 60; // 100–160px — big targets for small fingers
+  const color  = BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)];
+  const size   = 100 + Math.random() * 60; // 100–160px — big targets for small fingers
   const speedMod = 1 - (GAME_DURATION - timeLeft) / GAME_DURATION * 0.25; // speeds up gently over time
   const duration = (7 + Math.random() * 4) * speedMod; // slower rise for easier tapping
   const leftPct  = 5 + Math.random() * 72; // keep large balloons fully on screen
 
+  // Pick a custom photo if any are saved (roughly 50/50 mix when photos exist)
+  const photos = loadPhotos();
+  const imgSrc = photos.length > 0 && Math.random() < 0.6
+    ? photos[Math.floor(Math.random() * photos.length)]
+    : null;
+
   const el = document.createElement('div');
   el.className = 'balloon';
-  el.innerHTML = makeBalloonSVG(color, size);
+  el.innerHTML = makeBalloonSVG(color, size, imgSrc);
   el.style.left   = leftPct + '%';
   el.style.width  = size + 'px';
   el.style.animationDuration = `${duration}s, ${1.5 + Math.random()}s`;
