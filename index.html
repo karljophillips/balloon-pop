@@ -253,18 +253,19 @@
 
   /* Settings button */
   #settings-btn {
-    position: absolute;
-    bottom: 28px; right: 28px;
-    width: 52px; height: 52px;
-    border-radius: 50%;
+    margin-top: 18px;
+    padding: 10px 28px;
+    border-radius: 50px;
     border: none;
-    background: rgba(255,255,255,0.5);
-    font-size: 24px;
+    background: rgba(255,255,255,0.45);
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 900;
     cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
     box-shadow: 0 3px 0 rgba(0,0,0,0.1);
     touch-action: manipulation;
-    pointer-events: all;
+    letter-spacing: 0.5px;
   }
 
   /* Settings screen */
@@ -363,7 +364,7 @@
   <h1>🎈 Balloon<br>Pop!</h1>
   <p>Tap the balloons before<br>they fly away!</p>
   <button class="btn" id="start-btn">Let's Play!</button>
-  <button id="settings-btn" title="Add photos">📷</button>
+  <button id="settings-btn">📷 Add Photos</button>
 </div>
 
 <!-- Settings screen -->
