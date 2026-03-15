@@ -251,24 +251,7 @@
 
   #start-screen { background: linear-gradient(160deg, #ffecd2 0%, #fcb69f 100%); }
 
-  /* Settings button */
-  #settings-btn {
-    margin-top: 18px;
-    padding: 10px 28px;
-    border-radius: 50px;
-    border: none;
-    background: rgba(255,255,255,0.6);
-    color: #c93060;
-    font-family: 'Nunito', sans-serif;
-    font-size: 1rem;
-    font-weight: 900;
-    cursor: pointer;
-    box-shadow: 0 3px 0 rgba(0,0,0,0.1);
-    touch-action: manipulation;
-    letter-spacing: 0.5px;
-  }
-
-  /* Settings screen */
+  /* Photo settings screen */
   #settings-screen {
     background: linear-gradient(160deg, #e0f0ff 0%, #cce8ff 100%);
   }
@@ -330,6 +313,89 @@
     background: linear-gradient(135deg, #a0a0b0, #7a7a8a);
     box-shadow: 0 6px 0 #555566, 0 8px 20px rgba(100,100,120,0.3);
   }
+
+  /* Game settings screen */
+  #game-settings-screen {
+    background: linear-gradient(160deg, #f0e6ff 0%, #d4b8ff 100%);
+    justify-content: flex-start;
+    padding-top: 48px;
+    overflow-y: auto;
+  }
+  #game-settings-screen h1 { font-size: clamp(2rem, 8vw, 3rem); margin-bottom: 6px; }
+  #game-settings-screen > p { margin-bottom: 20px; }
+
+  .settings-list {
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+  .setting-row {
+    background: rgba(255,255,255,0.45);
+    border-radius: 20px;
+    padding: 14px 16px;
+  }
+  .setting-label {
+    font-size: 0.85rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 10px;
+  }
+  .seg-group {
+    display: flex;
+    background: rgba(255,255,255,0.3);
+    border-radius: 50px;
+    padding: 4px;
+    gap: 3px;
+  }
+  .seg-btn {
+    flex: 1;
+    padding: 9px 4px;
+    border: none;
+    border-radius: 46px;
+    background: transparent;
+    color: rgba(255,255,255,0.85);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: clamp(0.78rem, 3vw, 0.95rem);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    touch-action: manipulation;
+    white-space: nowrap;
+  }
+  .seg-btn.active {
+    background: white;
+    color: #845EC2;
+  }
+
+  #game-settings-back-btn {
+    background: linear-gradient(135deg, #a0a0b0, #7a7a8a);
+    box-shadow: 0 6px 0 #555566, 0 8px 20px rgba(100,100,120,0.3);
+  }
+
+  /* Start screen secondary buttons row */
+  .start-secondary {
+    display: flex;
+    gap: 12px;
+    margin-top: 18px;
+  }
+  .start-secondary button {
+    padding: 10px 20px;
+    border-radius: 50px;
+    border: none;
+    background: rgba(255,255,255,0.6);
+    color: #c93060;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.1);
+    touch-action: manipulation;
+  }
 </style>
 </head>
 <body>
@@ -364,7 +430,10 @@
   <h1>🎈 Balloon<br>Pop!</h1>
   <p>Tap the balloons before<br>they fly away!</p>
   <button class="btn" id="start-btn">Let's Play!</button>
-  <button id="settings-btn">📷 Add Photos</button>
+  <div class="start-secondary">
+    <button id="settings-btn">📷 Photos</button>
+    <button id="game-settings-btn">⚙️ Settings</button>
+  </div>
 </div>
 
 <!-- Settings screen -->
@@ -378,6 +447,56 @@
   <button class="btn" id="back-btn" style="margin-top:10px">← Back</button>
 </div>
 
+<!-- Game Settings screen -->
+<div class="screen" id="game-settings-screen" style="display:none">
+  <h1>⚙️ Settings</h1>
+  <p>Customise the game!</p>
+  <div class="settings-list">
+
+    <div class="setting-row">
+      <div class="setting-label">⏱ Game Time</div>
+      <div class="seg-group" data-setting="gameTime">
+        <button class="seg-btn" data-value="15">15s</button>
+        <button class="seg-btn" data-value="30">30s</button>
+        <button class="seg-btn" data-value="45">45s</button>
+        <button class="seg-btn" data-value="60">60s</button>
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-label">🎈 Balloon Size</div>
+      <div class="seg-group" data-setting="balloonSize">
+        <button class="seg-btn" data-value="0.6">Tiny</button>
+        <button class="seg-btn" data-value="0.85">Small</button>
+        <button class="seg-btn" data-value="1">Normal</button>
+        <button class="seg-btn" data-value="1.4">Big</button>
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-label">⚡ Speed Ramp</div>
+      <div class="seg-group" data-setting="speedRamp">
+        <button class="seg-btn" data-value="0">None</button>
+        <button class="seg-btn" data-value="0.5">Gentle</button>
+        <button class="seg-btn" data-value="1">Normal</button>
+        <button class="seg-btn" data-value="2">Fast</button>
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-label">🪄 Max Balloons</div>
+      <div class="seg-group" data-setting="maxBalloons">
+        <button class="seg-btn" data-value="3">3</button>
+        <button class="seg-btn" data-value="6">6</button>
+        <button class="seg-btn" data-value="9">9</button>
+        <button class="seg-btn" data-value="12">12</button>
+      </div>
+    </div>
+
+  </div>
+  <button class="btn" id="game-settings-back-btn">← Back</button>
+</div>
+
 <!-- End screen -->
 <div class="screen" id="end-screen" style="display:none">
   <h1>⭐ Time's Up!</h1>
@@ -388,7 +507,15 @@
 </div>
 
 <script>
-const GAME_DURATION = 30;
+// --- Game settings ---
+const SETTINGS_KEY = 'balloon-pop-settings';
+const SETTINGS_DEFAULTS = { gameTime: 30, balloonSize: 1, speedRamp: 1, maxBalloons: 9 };
+
+function loadSettings() {
+  try { return Object.assign({}, SETTINGS_DEFAULTS, JSON.parse(localStorage.getItem(SETTINGS_KEY))); }
+  catch { return Object.assign({}, SETTINGS_DEFAULTS); }
+}
+function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
 
 // --- Custom photos (stored in localStorage) ---
 const STORAGE_KEY = 'balloon-pop-images';
@@ -424,7 +551,7 @@ function renderPhotoGrid() {
   });
 }
 
-// Settings screen wiring
+// Photo settings screen wiring
 const settingsScreen = document.getElementById('settings-screen');
 const fileInput      = document.getElementById('file-input');
 
@@ -438,6 +565,39 @@ document.getElementById('back-btn').addEventListener('click', () => {
   startScreen.style.display    = 'flex';
 });
 document.getElementById('add-photo-btn').addEventListener('click', () => fileInput.click());
+
+// Game settings screen wiring
+const gameSettingsScreen = document.getElementById('game-settings-screen');
+
+function renderGameSettings() {
+  const s = loadSettings();
+  gameSettingsScreen.querySelectorAll('.seg-group').forEach(group => {
+    const key = group.dataset.setting;
+    group.querySelectorAll('.seg-btn').forEach(btn => {
+      btn.classList.toggle('active', String(btn.dataset.value) === String(s[key]));
+    });
+  });
+}
+
+gameSettingsScreen.querySelectorAll('.seg-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const key = btn.closest('.seg-group').dataset.setting;
+    const s   = loadSettings();
+    s[key]    = isNaN(btn.dataset.value) ? btn.dataset.value : Number(btn.dataset.value);
+    saveSettings(s);
+    renderGameSettings();
+  });
+});
+
+document.getElementById('game-settings-btn').addEventListener('click', () => {
+  startScreen.style.display      = 'none';
+  gameSettingsScreen.style.display = 'flex';
+  renderGameSettings();
+});
+document.getElementById('game-settings-back-btn').addEventListener('click', () => {
+  gameSettingsScreen.style.display = 'none';
+  startScreen.style.display        = 'flex';
+});
 
 fileInput.addEventListener('change', () => {
   const files  = Array.from(fileInput.files);
@@ -542,12 +702,20 @@ function makeBalloonSVG(color, size, imgSrc) {
 // --- Spawn balloon ---
 function spawnBalloon() {
   if (!gameActive) return;
+  const cfg = loadSettings();
 
-  const color  = BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)];
-  const size   = 100 + Math.random() * 60; // 100–160px — big targets for small fingers
-  const speedMod = 1 - (GAME_DURATION - timeLeft) / GAME_DURATION * 0.25; // speeds up gently over time
-  const duration = (7 + Math.random() * 4) * speedMod; // slower rise for easier tapping
-  const leftPct  = 5 + Math.random() * 72; // keep large balloons fully on screen
+  // Respect max balloons cap
+  if (gameArea.querySelectorAll('.balloon').length >= cfg.maxBalloons) return;
+
+  const color    = BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)];
+  const baseSize = (100 + Math.random() * 60) * cfg.balloonSize; // scale by size setting
+  const size     = Math.max(40, Math.round(baseSize));
+  const gameDur  = cfg.gameTime;
+  const elapsed  = gameDur - timeLeft;
+  const ramp     = cfg.speedRamp * (elapsed / gameDur) * 0.4; // 0–40% speed increase scaled by ramp
+  const speedMod = 1 - ramp;
+  const duration = (7 + Math.random() * 4) * speedMod;
+  const leftPct  = 5 + Math.random() * 72;
 
   // Pick a custom photo if any are saved (roughly 50/50 mix when photos exist)
   const photos = loadPhotos();
@@ -623,7 +791,7 @@ function burstBalloon(el, color, size) {
 
 // --- Timer ---
 function startTimer() {
-  timeLeft = GAME_DURATION;
+  timeLeft = loadSettings().gameTime;
   timerEl.textContent = timeLeft;
   timerEl.classList.remove('urgent');
 
@@ -638,13 +806,14 @@ function startTimer() {
 // --- Spawn rate ---
 function startSpawning() {
   spawnBalloon();
-  let interval = 900;
+  const gameDur = loadSettings().gameTime;
+  let interval  = 900;
   spawnInterval = setInterval(() => {
     spawnBalloon();
-    // Gradually speed up spawning
-    const elapsed = GAME_DURATION - timeLeft;
-    if (elapsed > 10 && interval > 600) { clearInterval(spawnInterval); interval = 650; startSpawning(); }
-    if (elapsed > 20 && interval > 600) { clearInterval(spawnInterval); interval = 450; startSpawning(); }
+    // Gradually speed up spawning as game progresses
+    const elapsed = gameDur - timeLeft;
+    if (elapsed > gameDur * 0.33 && interval > 600) { clearInterval(spawnInterval); interval = 650; startSpawning(); }
+    if (elapsed > gameDur * 0.67 && interval > 600) { clearInterval(spawnInterval); interval = 450; startSpawning(); }
   }, interval);
 }
 
